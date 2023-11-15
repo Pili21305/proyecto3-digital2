@@ -1,0 +1,99 @@
+//************************************************************************************************
+// Pilar Trujillo 21305
+// Proyecto 3 digital 2
+//************************************************************************************************
+
+//************************************************************************************************
+// Librerías
+//************************************************************************************************
+#include <Arduino.h>
+#include <Temperature_LM75_Derived.h>
+#include <Adafruit_NeoPixel.h>
+
+#ifdef __AVR__
+#include <avr/power.h>
+#endif
+
+//************************************************************************************************
+// Variables globales
+//************************************************************************************************
+Generic_LM75 templec;
+#define PIXEL_PIN 25
+#define NUM_PIXEL 12
+Adafruit_NeoPixel pixels(NUM_PIXEL, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
+
+//************************************************************************************************
+// Funciones Prototipo
+//************************************************************************************************
+void colorWipe(uint32_t color);
+void pixelcolor(Generic_LM75 templec);
+
+
+//************************************************************************************************
+// Configuración inicial
+//************************************************************************************************
+void setup()
+{
+  Serial.begin(115200);
+  Serial2.begin(115200);
+  Wire.begin();
+
+  pixels.begin();
+  pixels.setBrightness(50);
+  pixels.show();
+}
+
+//************************************************************************************************
+// Loop principal
+//************************************************************************************************
+void loop()
+{
+  while (Serial2.available() > 0)
+  {
+    char lectemp = Serial2.read();
+
+    if (lectemp == 'C')
+    {
+      float temperature = templec.readTemperatureC();
+      Serial2.print(temperature);
+     // Serial2.println(" C");
+      Serial.println("Temperatura enviada: ");
+      Serial.println(temperature);
+
+      pixelcolor(templec);
+    }
+  }
+}
+
+//************************************************************************************************
+// Función para cambiar el color de los píxeles según la temperatura
+//************************************************************************************************
+void pixelcolor(Generic_LM75 templec)
+{
+  float temperature = templec.readTemperatureC();
+
+  if (temperature < 15)
+  {
+    colorWipe(pixels.Color(0, 0, 255));
+  }
+  else if (temperature >= 16 && temperature <= 25)
+  {
+    colorWipe(pixels.Color(255, 165, 0));
+  }
+  else if (temperature > 26)
+  {
+    colorWipe(pixels.Color(255, 0, 0));
+  }
+  delay(200); 
+}
+
+void colorWipe(uint32_t color)
+{
+  for (uint16_t i = 0; i < pixels.numPixels(); i++)
+  {
+    pixels.setPixelColor(i, color);
+  }
+  pixels.show();
+}
+
+
